@@ -1,14 +1,61 @@
 <!DOCTYPE html>
-<html><head><title>Prime Forge Brain</title></head><body style=font-family:sans-serif;padding:2rem>
-<h1>🧠 Prime Forge Brain Backend Live</h1>
-<p>Autonomous: Chat/DB/Cron. Tests:</p>
-<pre id=status>Loading...</pre>
-<script>
-(async()=>{
-  const s = await (await fetch('/api/status')).json();
-  const t = await (await fetch('/api/self-test')).json();
-  document.getElementById('status').textContent = `Status: ${JSON.stringify({...s,...t},null,2)}`;
-  setInterval(()=>location.reload(),3e4);
-})();
-</script>
-</body></html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prime Forge Brain - Empire Autonomous</title>
+  <style>
+    body { background: black; color: lime; font-family: 'Courier New', monospace; padding: 20px; max-width: 800px; margin: auto; }
+    h1 { text-align: center; text-shadow: 0 0 10px lime; }
+    button { background: #111; color: lime; border: 1px solid lime; padding: 10px 20px; margin: 5px; cursor: pointer; font-family: inherit; }
+    button:hover { box-shadow: 0 0 10px lime; }
+    pre { background: #111; padding: 10px; border: 1px solid lime; white-space: pre-wrap; max-height: 300px; overflow: auto; }
+    #uptime { color: cyan; }
+  </style>
+</head>
+<body>
+  <h1>🚀 Prime Forge Brain Live</h1>
+  <p>Empire revenue autonomous. Uptime: <span id="uptime">0</span>s | Sandbox: theonlineyards@outlook.com</p>
+  
+  <button onclick="testStatus()">API Status</button>
+  <button onclick="testPayPal()">PayPal Test $10</button>
+  <button onclick="buyNFT('matriarch',20)">Buy Matriarch NFT $20</button>
+  
+  <pre id="output">Ready for tests...</pre>
+
+  <script>
+    // Uptime ticker
+    setInterval(() => {
+      fetch('/api/status').then(r => r.json()).then(d => {
+        document.getElementById('uptime').textContent = d.uptime || 'live';
+      }).catch(() => {});
+    }, 5000);
+
+    // Tests
+    async function testStatus() {
+      const r = await fetch('/api/status');
+      document.getElementById('output').textContent = await r.text();
+    }
+
+    async function testPayPal() {
+      const r = await fetch('/api/paypal', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({amount: 10, cmd: 'test'})
+      });
+      document.getElementById('output').textContent = await r.text();
+    }
+
+    async function buyNFT(nft, amount) {
+      const r = await fetch('/api/buy', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({nft, amount})
+      });
+      const d = await r.json();
+      if (d.paypalUrl) window.open(d.paypalUrl, '_blank');
+      document.getElementById('output').textContent = JSON.stringify(d, null, 2);
+    }
+  </script>
+</body>
+</html>
