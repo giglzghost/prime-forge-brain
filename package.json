@@ -2,14 +2,6 @@
   "name": "prime-forge-brain",
   "version": "1.0.0",
   "type": "commonjs",
-  "scripts": { "start": "node server.js" },
-  "dependencies": {
-    "express": "^4.19.2",
-    "socket.io": "^4.7.5",
-    "winston": "^3.13.0",
-    "sqlite3": "^5.1.7",
-    "node-cron": "^3.0.3",
-    "axios": "^1.6.8",
-    "dotenv": "^16.4.5"
-  }
+  "dependencies": { "express": "^4.19.2" },
+  "scripts": { "start": "node server.js" }
 }
