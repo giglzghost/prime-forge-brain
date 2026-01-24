@@ -4,81 +4,94 @@ const path = require('path');
 
 const server = http.createServer((req, res) => {
   const parsedUrl = url.parse(req.url, true);
-  const pathname = parsedUrl.pathname.slice(1); // strip /
+  const pathname = parsedUrl.pathname;
 
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  if (req.method === 'OPTIONS') return res.end();
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  if (req.method === 'OPTIONS') {
+    res.writeHead(200);
+    return res.end();
+  }
 
   console.log(`${req.method} ${pathname}`);
 
-  if (pathname === '' || pathname === 'index.html') {
-    res.writeHead(200, { 'Content-Type': 'text/html' });
-    res.end(`
+  let body = '';
+  req.on('data', chunk => body += chunk);
+  req.on('end', () => handleRequest());
+
+  function handleRequest() {
+    if (pathname === '/' || pathname === '/index.html') {
+      res.writeHead(200, { 'Content-Type': 'text/html' });
+      res.end(`
 <!DOCTYPE html>
 <html>
-<head><title>Prime Forge Brain</title></head>
-<body>
-<h1>Prime Forge Brain Live</h1>
-<p>API: <a href="/api/status">/api/status</a> | <a href="/api/self-test">/api/self-test</a> | <a href="/api/chat">/api/chat</a></p>
+<head><title>Prime Forge Brain</title><meta charset="utf-8"></head>
+<body style="background:black;color:lime;font-family:monospace;padding:20px;">
+<h1>🚀 Prime Forge Brain Live</h1>
+<p>Empire autonomous. Uptime: <span id="uptime"></span>s</p>
+<button onclick="testStatus()">API Status</button>
+<button onclick="testPayPal()">PayPal Test $10</button>
+<pre id="output"></pre>
 <script>
-async function testChat() {
-  const res = await fetch('/api/chat', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({cmd: 'test'})
-  });
-  document.body.innerHTML += '<p>Chat: ' + await res.text() + '</p>';
-}
+setInterval(()=>fetch('/api/status').then(r=>r.json()).then(d=>document.getElementById('uptime').textContent=d.uptime),5000);
+async function testStatus(){ const r=await fetch('/api/status'); document.getElementById('output').textContent=await r.text(); }
+async function testPayPal(){ const r=await fetch('/api/paypal',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({amount:10,cmd:'test'})}); document.getElementById('output').textContent=await r.text(); }
 </script>
-<button onclick="testChat()">Test Chat</button>
 </body>
 </html>
-    `);
-  } else if (pathname === 'api/status') {
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({
-      brain: 'live',
-      api: 'ready',
-      tasks: 'ready',
-      production: true,
-      uptime: process.uptime()
-    }));
-  } else if (pathname === 'api/self-test') {
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({
-      github: 'synced',
-      azure: 'mirror OK',
-      vercel: 'live'
-    }));
-  } else if (pathname === 'api/chat') {
-    let body = '';
-    req.on('data', chunk => body += chunk);
-    req.on('end', () => {
-      let cmd = 'echo';
-      try { const json = JSON.parse(body); cmd = json.cmd || 'test'; } catch(e) {}
+      `);
+      return;
+    }
+
+    // API Status
+    if (pathname === '/api/status') {
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({
-        reply: `Prime Forge executed: ${cmd}`,
-        autonomous: true
+        brain: 'live v1',
+        github: 'synced',
+        azure: 'mirror OK',
+        vercel: 'live',
+        uptime: process.uptime().toFixed(0) + 's'
       }));
-    });
-  } else if (pathname === 'api/paypal') {
-    let body = '';
-    req.on('data', chunk => body += chunk);
-    req.on('end', () => {
+      return;
+    }
+
+    // API Chat
+    if (pathname === '/api/chat') {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      const cmd = JSON.parse(body || '{}').cmd || 'status';
+      res.end(JSON.stringify({ response: `Prime Forge: ${cmd} executed`, autonomous: true }));
+      return;
+    }
+
+    // PayPal Sandbox (to theonlineyards@outlook.com)
+    if (pathname === '/api/paypal') {
       let amount = 10;
-      try { const json = JSON.parse(body); amount = json.amount || 10; } catch(e) {}
-      const paypalUrl = `https://www.sandbox.paypal.com/cgi-bin/webscr?cmd=_xclick&business=YOUR-SANDBOX@BUSINESS.COM&amount=${amount}&item_name=Prime Forge Brain Independence`;
+      let cmd = 'test';
+      try {
+        const data = JSON.parse(body);
+        amount = parseFloat(data.amount) || 10;
+        cmd = data.cmd || 'test';
+      } catch (e) {
+        console.error('PayPal parse error:', e);
+      }
+      const business = 'theonlineyards@outlook.com';
+      const paypalUrl = `https://www.sandbox.paypal.com/cgi-bin/webscr?cmd=_xclick&business=${business}&amount=${amount}&item_name=Prime Forge Brain ${cmd}&currency_code=USD&notify_url=https://prime-forge-brain.vercel.app/api/paypal/webhook`;
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({
         success: true,
-        deposit: paypalUrl,
+        depositUrl: paypalUrl,
+        amount,
+        to: business,
+        cmd,
         autonomous: true,
-        brain: 'self-fund unlocked'
+        message: 'Click depositUrl → Sandbox PayPal deposit live'
       }));
-    });
-  } else {
+      return;
+    }
+
+    // 404
     res.writeHead(404);
     res.end('404 Not Found');
   }
