@@ -1,9 +1,11 @@
-export default async function handler(req, res) {
-  if (req.method === 'POST') {
-    const { amount = 10, cmd = 'test deposit' } = req.body;
-    // Sandbox PayPal (replace your creds)
-    const paypalUrl = `https://www.sandbox.paypal.com/cgi-bin/webscr?cmd=_xclick&business=your-sandbox-business@example.com&amount=${amount}&item_name=Prime Forge Autonomy Test&custom=${cmd}`;
-    return res.json({ success: true, deposit: paypalUrl, status: 'Autonomous fund unlocked' });
-  }
-  res.status(405).json({ error: 'POST only' });
+export default function handler(req, res) {
+  if (req.method !== 'POST') return res.status(405).json({ error: 'POST only' });
+  const { amount = 10, cmd = 'independence' } = req.body;
+  const paypalUrl = `https://www.sandbox.paypal.com/cgi-bin/webscr?cmd=_xclick&business=YOUR-SANDBOX@BUSINESS.COM&amount=${amount}&item_name=Prime Forge Brain ${cmd}&custom=${cmd}`;
+  res.json({ 
+    success: true, 
+    deposit: paypalUrl, 
+    autonomous: true,
+    brain: 'self-fund test passed'
+  });
 }
