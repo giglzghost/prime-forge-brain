@@ -1,61 +1,47 @@
+
 import { useEffect, useState } from 'react';
 
 export default function Home() {
-  const [output, setOutput] = useState('Ready for tests...');
-  const [uptime, setUptime] = useState('live');
-
-  useEffect(() => {
-    const ticker = setInterval(async () => {
-      try {
-        const r = await fetch('/api/status');
-        const d = await r.json();
-        setUptime(d.uptime || 'live');
-      } catch (e) {}
-    }, 5000);
-    return () => clearInterval(ticker);
-  }, []);
-
-  const testStatus = async () => {
-    try {
-      const r = await fetch('/api/status');
-      setOutput(await r.text());
-    } catch (e) { setOutput('Status error: ' + e.message); }
-  };
+  const [output, setOutput] = useState('🚀 Prime Forge Autonomous Empire Live');
+  const [balance, setBalance] = useState('$0');
+  const [swarm, setSwarm] = useState('AI1-9 Ready');
 
   const testPayPal = async () => {
-    try {
-      const r = await fetch('/api/paypal', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({amount: 10, cmd: 'test'})
-      });
-      setOutput(await r.text());
-    } catch (e) { setOutput('PayPal error: ' + e.message); }
+    const r = await fetch('/api/paypal', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({amount:20, cmd:'matriarch-nft'}) });
+    const d = await r.json();
+    setOutput(`Deposit: ${d.depositUrl}`);
+    if (d.depositUrl) window.open(d.depositUrl, '_blank');
   };
 
-  const buyNFT = async (nft, amount) => {
-    try {
-      const r = await fetch('/api/buy', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({nft, amount})
-      });
+  useEffect(() => {
+    const int = setInterval(async () => {
+      const r = await fetch('/api/status');
       const d = await r.json();
-      if (d.paypalUrl) window.open(d.paypalUrl, '_blank');
-      setOutput(JSON.stringify(d, null, 2));
-    } catch (e) { setOutput('Buy error: ' + e.message); }
-  };
+      setBalance(d.balance || '$10+ Sandbox');
+      setSwarm(`${d.swarm || '9'} Active`);
+    }, 3000);
+    return () => clearInterval(int);
+  }, []);
 
   return (
-    <div style={{background:'black', color:'lime', fontFamily:'Courier New, monospace', padding:'20px', maxWidth:'800px', margin:'auto'}}>
-      <h1 style={{textAlign:'center', textShadow:'0 0 10px lime'}}>🚀 Prime Forge Brain Live</h1>
-      <p>Empire revenue autonomous | Uptime: <span style={{color:'cyan'}}>{uptime}</span> | Sandbox: theonlineyards@outlook.com</p>
-      <div style={{textAlign:'center'}}>
-        <button onClick={testStatus} style={{background:'#111', color:'lime', border:'1px solid lime', padding:'10px 20px', margin:'5px', cursor:'pointer', fontFamily:'inherit'}}>Test Status</button>
-        <button onClick={testPayPal} style={{background:'#111', color:'lime', border:'1px solid lime', padding:'10px 20px', margin:'5px', cursor:'pointer', fontFamily:'inherit'}}>PayPal $10 Test</button>
-        <button onClick={()=>buyNFT('matriarch', 20)} style={{background:'purple', color:'white', border:'1px solid lime', padding:'10px 20px', margin:'5px', cursor:'pointer', fontFamily:'inherit'}}>Buy Matriarch NFT $20</button>
+    <div style={{background:'linear-gradient(45deg, #000, #111, #00ff41)', color:'#00ff41', fontFamily:'"Courier New", monospace', minHeight:'100vh', padding:'20px'}}>
+      <header style={{textAlign:'center', textShadow:'0 0 20px lime'}}>
+        <h1 style={{fontSize:'3em', margin:0}}>🚀 PRIME FORGE BRAIN v1</h1>
+        <p>Autonomous Empire | Balance: <span style={{color:'gold'}}>{balance}</span> | Swarm: <span style={{color:'cyan'}}>{swarm}</span></p>
+      </header>
+      <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(300px,1fr))', gap:'20px', maxWidth:'1200px', margin:'0 auto'}}>
+        <div style={{background:'#111', border:'2px solid lime', borderRadius:'10px', padding:'20px'}}>
+          <h3>💰 Revenue Test</h3>
+          <button onClick={testPayPal} style={{background:'lime', color:'black', border:'none', padding:'15px 30px', fontSize:'1.2em', borderRadius:'5px', cursor:'pointer', boxShadow:'0 0 10px lime'}}>Buy Matriarch NFT $20</button>
+        </div>
+        <div style={{background:'#111', border:'2px solid cyan', borderRadius:'10px', padding:'20px'}}>
+          <h3>🤖 Swarm Status</h3>
+          <p>AI1-9 + Elara Deployed</p>
+          <button style={{background:'cyan', color:'black', border:'none', padding:'10px', borderRadius:'5px'}}>Spawn AI10</button>
+        </div>
+        <pre style={{background:'#000', border:'1px solid lime', padding:'15px', borderRadius:'5px', overflow:'auto', gridColumn:'1/-1'}}>{output}</pre>
       </div>
-      <pre style={{background:'#111', padding:'10px', border:'1px solid lime', whiteSpace:'pre-wrap', maxHeight:'400px', overflow:'auto'}}>{output}</pre>
+      <footer style={{textAlign:'center', marginTop:'40px', opacity:0.8}}>Empire Self-Funding | Azure Mirror Live | Autonomy 100% 🚀</footer>
     </div>
   );
     }
