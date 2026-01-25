@@ -52,3 +52,9 @@ app.post('/api/buy', (req, res) => {
 app.listen(port, () => {
   console.log(`Prime Forge live on port ${port}`);
 });
+app.post('/api/webhook-paypal', express.raw({type: 'application/json'}), (req, res) => {
+  const body = req.body.toString();
+  console.log('PayPal Webhook:', body);  // Logs txns
+  // TODO: Reinvest 51%, etc.
+  res.sendStatus(200);
+});
