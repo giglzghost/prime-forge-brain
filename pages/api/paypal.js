@@ -30,3 +30,4 @@ export default function handler(req, res) {
     });
   });
 }
+export const config = { runtime: 'nodejs22.x' };
