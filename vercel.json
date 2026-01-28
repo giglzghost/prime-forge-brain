@@ -1,0 +1,4 @@
+{
+  "functions": {"index.js": {"maxDuration": 30}},
+  "routes": [{"src": "/memory", "dest": "/index.js"}]
+}
